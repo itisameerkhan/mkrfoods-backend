@@ -1,0 +1,124 @@
+{
+  "info": {
+    "name": "MKR Foods Mobile OTP API",
+    "description": "Postman collection for testing WhatsApp OTP functionality using wbm",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Send OTP",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"phone\": \"9876543210\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/mobile-otp/send",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "mobile-otp",
+            "send"
+          ]
+        },
+        "description": "Send OTP to WhatsApp number. Phone should be 10-digit Indian mobile number without country code."
+      },
+      "response": []
+    },
+    {
+      "name": "Verify OTP",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"phone\": \"9876543210\",\n  \"otp\": \"123456\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/mobile-otp/verify",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "mobile-otp",
+            "verify"
+          ]
+        },
+        "description": "Verify the OTP received on WhatsApp."
+      },
+      "response": []
+    },
+    {
+      "name": "Resend OTP",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"phone\": \"9876543210\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/mobile-otp/resend",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "mobile-otp",
+            "resend"
+          ]
+        },
+        "description": "Resend OTP to WhatsApp number."
+      },
+      "response": []
+    },
+    {
+      "name": "Check OTP Status (Development)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/mobile-otp/status/9876543210",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "mobile-otp",
+            "status",
+            "9876543210"
+          ]
+        },
+        "description": "Check OTP status for debugging (only works in development environment)."
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080",
+      "type": "string"
+    }
+  ]
+}
