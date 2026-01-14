@@ -1,4 +1,5 @@
 import razorpayInstance from "../utils/razorpay.js"
+import Payment from "../models/payment.js";
 
 export const createPayment = async (req, res) => {
     try {
@@ -14,6 +15,18 @@ export const createPayment = async (req, res) => {
       });
       
       console.log(order);
+
+      const payment = new Payment({
+        // userId: req.user._id,
+        paymentId: order.id,
+        orderId: order.id,
+        amount: order.amount,
+        currency: order.currency,
+        notes: order.notes,
+        status: order.status
+      })
+
+      await payment.save(); 
       
       res.json({
         success: true,
