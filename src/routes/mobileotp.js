@@ -7,9 +7,9 @@ const router = express.Router();
 const otpStore = new Map();
 const OTP_EXPIRY_TIME = 5 * 60 * 1000; // 5 minutes
 
-/**
+/** 
  * Generate random 6-digit OTP
- */
+ */ 
 const generateOtp = () => {
     return Math.floor(100000 + Math.random() * 900000).toString();
 };

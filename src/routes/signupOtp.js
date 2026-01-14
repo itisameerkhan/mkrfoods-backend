@@ -1,6 +1,9 @@
 import express from "express";
 import nodemailer from "nodemailer";
 import fs from "fs";
+import bcrypt from "bcryptjs";
+import userModel from "../models/userModel.js";
+
 let admin = null;
 
 const router = express.Router();
