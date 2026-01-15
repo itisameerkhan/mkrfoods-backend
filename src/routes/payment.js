@@ -7,6 +7,6 @@ const router = express.Router();
 
 router.route("/create").post(authMiddleware, createPayment);
 router.route("/verify").post(verifyPayment);
-router.route("/api/payment/webhook").post(webhookVerification); 
+router.route("/webhook").post(webhookVerification); 
 
 export default router;
