@@ -36,7 +36,7 @@ export const createPayment = async (req, res) => {
 
     // Save to Firebase Firestore
     try {
-      if (admin && admin.firestore) {
+      if (admin && admin.apps?.length && admin.firestore) {
         await admin.firestore().collection("payments").doc(order.id).set({
           userId: payment.userId,
           paymentId: payment.paymentId,
@@ -92,7 +92,7 @@ export const verifyPayment = async (req, res) => {
 
         // Update Firebase Firestore
         try {
-          if (admin && admin.firestore) {
+          if (admin && admin.apps?.length && admin.firestore) {
             await admin
               .firestore()
               .collection("payments")
