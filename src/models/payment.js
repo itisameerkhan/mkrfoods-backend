@@ -23,6 +23,19 @@ const paymentSchema = new mongoose.Schema({
     notes: {
         type: Object
     },
+    cart: {
+        items: [{
+            productId: { type: String },
+            name: { type: String },
+            image: { type: String },
+            variants: [{
+                weight: { type: String },
+                price: { type: Number },
+                quantity: { type: Number }
+            }],
+            totalPrice: { type: Number }
+        }]
+    },
     status: {
         type: String,
         default: "created",
