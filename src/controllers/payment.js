@@ -186,7 +186,9 @@ export const webhookVerification = async (req, res) => {
 
 export const getPaymentsByUser = async (req, res) => {
   try {
-    const userId = req.user.uid;
+    // Use userId from query if provided (for cases where backend auth verification skips), otherwise use authenticated user
+    const userId = req.query.userId || req.user.uid;
+    console.log("Fetching orders for userId:", userId);
     
     const payments = await Payment.find({ userId })
       .sort({ createdAt: -1 });
