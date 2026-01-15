@@ -2,7 +2,8 @@ import razorpayInstance from "../utils/razorpay.js";
 import Payment from "../models/payment.js";
 import crypto from "crypto";
 import admin from "../config/firebase.js";
-import validateWebhookSignature from "razorpay";
+import Razorpay from "razorpay";
+
 
 export const createPayment = async (req, res) => {
   try {
@@ -125,10 +126,12 @@ export const verifyPayment = async (req, res) => {
   }
 };
 
+
+
 export const webhookVerification = async (req, res) => {
   try {
-    const webhookSignature = req.headers["x-razorpay-Signature"];
-    const isWebhookValid = validateWebhookSignature(
+    const webhookSignature = req.headers["x-razorpay-signature"];
+    const isWebhookValid = Razorpay.validateWebhookSignature(
       JSON.stringify(req.body),
       webhookSignature,
       process.env.RAZORPAY_WEBHOOK_SECRET
