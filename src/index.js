@@ -31,6 +31,13 @@ app.get("/health", (req, res) => {
   res.status(200).json({ status: "Server is running" });
 });
 
+app.get("/helloworld", (req, res) => {
+  res.json({
+    success: true,
+    message: "Hello World",
+  })
+})
+
 // Root endpoint
 app.get("/", (req, res) => {
   res.status(200).json({ message: "MKR Foods Backend API" });
@@ -51,12 +58,6 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.get("/helloworld", (req, res) => {
-  res.json({
-    success: true,
-    message: "Hello World",
-  })
-})
 // DB Connection and Server Start
 const startServer = async () => {
     try {
