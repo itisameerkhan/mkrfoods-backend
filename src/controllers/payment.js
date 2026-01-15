@@ -20,8 +20,10 @@ export const createPayment = async (req, res) => {
       },
     });
 
+    console.log("create payment");
     console.log(order);
 
+    
     const payment = new Payment({
       userId: userId || req.user.uid,
       paymentId: order.id,
