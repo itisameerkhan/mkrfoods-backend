@@ -28,6 +28,7 @@ const transporterConfig = {
     tls: {
       rejectUnauthorized: false // Helps avoiding cert issues on some cloud providers
     }
+};
 const transporter = nodemailer.createTransport(transporterConfig);
 
 // Verify transporter connection
