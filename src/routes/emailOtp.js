@@ -19,14 +19,15 @@ console.log("- EMAIL_PASS:", EMAIL_PASS ? "✓ (set)" : "✗ (missing)");
 // Configure Nodemailer transporter with SMTP
 const transporterConfig = {
     host: 'smtp.gmail.com',
-    port: 465,
-    secure: true
-};
-if (EMAIL_USER && EMAIL_PASS) {
-    transporterConfig.auth = { user: EMAIL_USER, pass: EMAIL_PASS };
-} else {
-    console.warn('EMAIL_USER or EMAIL_PASS not set. SMTP auth will likely fail. Set these in Backend/.env or environment variables.');
-}
+    port: 587,
+    secure: false, // true for 465, false for other ports
+    auth: {
+        user: EMAIL_USER,
+        pass: EMAIL_PASS
+    },
+    tls: {
+      rejectUnauthorized: false // Helps avoiding cert issues on some cloud providers
+    }
 const transporter = nodemailer.createTransport(transporterConfig);
 
 // Verify transporter connection
