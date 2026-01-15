@@ -130,7 +130,13 @@ export const verifyPayment = async (req, res) => {
 
 export const webhookVerification = async (req, res) => {
   try {
+
+    console.log("webhook called");
+    
     const webhookSignature = req.headers["x-razorpay-signature"];
+
+    console.log(webhookSignature);
+    
     const isWebhookValid = Razorpay.validateWebhookSignature(
       JSON.stringify(req.body),
       webhookSignature,
@@ -144,10 +150,16 @@ export const webhookVerification = async (req, res) => {
       });
     }
 
+    console.log("valid webhook signature");
+    
+
     const paymentDetails = req.body.payload.payment.entity;
     const payment = await Payment.findOne({orderId: paymentDetails.order_id});
     payment.status = paymentDetails.status;
     await payment.save();
+
+    console.log("payment saved");
+    
     if(req.body.event === "payment.captured"){
       
     }
