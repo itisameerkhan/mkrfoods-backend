@@ -3,13 +3,17 @@ dotenv.config();
 
 import express from "express";
 import cors from "cors";
+import { connectDB } from "./config/db.js";
 
+// App Config
 const app = express();
+const port = process.env.PORT || 8080;
 
 // Import routes after dotenv.config() so they can read env vars at module evaluation
 const emailOtpRoutes = (await import("./routes/emailOtp.js")).default;
 const signupOtpRoutes = (await import("./routes/signupOtp.js")).default;
 const mobileOtpRoutes = (await import("./routes/mobileotp.js")).default;
+const paymentRouter = (await import("./routes/payment.js")).default;
 
 // Middleware
 app.use(cors());
@@ -20,6 +24,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api/email-otp", emailOtpRoutes);
 app.use("/api", signupOtpRoutes);
 app.use("/api/mobile-otp", mobileOtpRoutes);
+app.use("/api/payment", paymentRouter);
 
 // Health check endpoint
 app.get("/health", (req, res) => {
@@ -46,7 +51,18 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(process.env.PORT || 8080, () => {
-  console.log("SERVER IS LISTENING ON PORT: ", process.env.PORT || 8080);
-  console.log("Environment:", process.env.NODE_ENV || "development");
-});
+// DB Connection and Server Start
+const startServer = async () => {
+    try {
+        await connectDB();
+        
+        app.listen(port, () => {
+            console.log(`SERVER IS LISTENING ON PORT: ${port}`);
+            console.log("Environment:", process.env.NODE_ENV || "development");
+        });
+    } catch (error) {
+        console.error("Failed to start server:", error);
+    }
+};
+
+startServer();

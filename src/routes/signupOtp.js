@@ -1,6 +1,9 @@
 import express from "express";
 import nodemailer from "nodemailer";
 import fs from "fs";
+import bcrypt from "bcryptjs";
+import userModel from "../models/userModel.js";
+
 let admin = null;
 
 const router = express.Router();
@@ -91,6 +94,31 @@ router.post("/send-otp", async (req, res) => {
         }
         if (!password || password.length < 8) {
             return res.status(400).json({ success: false, message: "Password must be at least 8 characters" });
+        }
+
+        // Check if user already exists in Firebase
+        try {
+            const isAdminInitialized = await initAdmin();
+            if (isAdminInitialized) {
+                try {
+                    await admin.auth().getUserByEmail(normalizedEmail);
+                    // If no error is thrown, the user exists
+                    return res.status(400).json({ 
+                        success: false, 
+                        message: "User with this email already exists. Please login." 
+                    });
+                } catch (error) {
+                    // Ignore user-not-found error, strictly handle other errors
+                    if (error.code !== 'auth/user-not-found') {
+                        console.error("Firebase Check Error:", error);
+                        return res.status(500).json({ success: false, message: "Error checking user status", error: error.message });
+                    }
+                }
+            } else {
+                console.warn("⚠️ Firebase Admin not initialized. Skipping duplicate user check.");
+            }
+        } catch (error) {
+            console.error("Error initializing admin for user check:", error);
         }
 
         // Generate OTP and store pending user (use normalized email as key)
