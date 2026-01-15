@@ -183,3 +183,25 @@ export const webhookVerification = async (req, res) => {
     });
   }
 };
+
+export const getPaymentsByUser = async (req, res) => {
+  try {
+    const userId = req.user.uid;
+    
+    const payments = await Payment.find({ userId })
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: payments.length,
+      data: payments
+    });
+  } catch (error) {
+    console.error("Error fetching user payments:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch order history",
+      error: error.message
+    });
+  }
+};
