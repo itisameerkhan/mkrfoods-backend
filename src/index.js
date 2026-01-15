@@ -51,6 +51,12 @@ app.use((err, req, res, next) => {
   });
 });
 
+app.get("/helloworld", (req, res) => {
+  res.json({
+    success: true,
+    message: "Hello World",
+  })
+})
 // DB Connection and Server Start
 const startServer = async () => {
     try {
