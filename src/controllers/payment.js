@@ -148,7 +148,6 @@ export const webhookVerification = async (req, res) => {
     const payment = await Payment.findOne({orderId: paymentDetails.order_id});
     payment.status = paymentDetails.status;
     await payment.save();
-
     if(req.body.event === "payment.captured"){
       
     }
