@@ -138,7 +138,7 @@ export const webhookVerification = async (req, res) => {
     console.log(webhookSignature);
     
     const isWebhookValid = Razorpay.validateWebhookSignature(
-      JSON.stringify(req.body),
+      req.rawBody,
       webhookSignature,
       process.env.RAZORPAY_WEBHOOK_SECRET
     );
