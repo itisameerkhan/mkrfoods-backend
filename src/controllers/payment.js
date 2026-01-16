@@ -192,7 +192,7 @@ export const getPaymentsByUser = async (req, res) => {
     const userId = req.query.userId || req.user.uid;
     console.log("Fetching orders for userId:", userId);
     
-    const payments = await Payment.find({ userId })
+    const payments = await Payment.find({ userId, status: "success" })
       .sort({ createdAt: -1 });
 
     res.status(200).json({
