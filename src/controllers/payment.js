@@ -7,7 +7,7 @@ import Razorpay from "razorpay";
 
 export const createPayment = async (req, res) => {
   try {
-    const { amount, name, email, phone, userId, cart } = req.body;
+    const { amount, name, email, phone, userId, cart, address } = req.body;
 
     const order = await razorpayInstance.orders.create({
       amount: amount * 100,
@@ -32,6 +32,7 @@ export const createPayment = async (req, res) => {
       currency: order.currency,
       notes: order.notes,
       cart: cart || { items: [] },
+      address: address || {},
       status: order.status,
     });
 
@@ -48,6 +49,7 @@ export const createPayment = async (req, res) => {
           currency: payment.currency,
           notes: payment.notes,
           cart: cart || { items: [] },
+          address: payment.address,
           status: payment.status,
           createdAt: new Date(),
           updatedAt: new Date(),

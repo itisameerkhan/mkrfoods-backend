@@ -36,6 +36,10 @@ const paymentSchema = new mongoose.Schema({
             totalPrice: { type: Number }
         }]
     },
+    address: {
+        type: Object,
+        required: true
+    },
     status: {
         type: String,
         default: "created",
