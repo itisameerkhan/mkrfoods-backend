@@ -39,6 +39,15 @@ const paymentSchema = new mongoose.Schema({
     status: {
         type: String,
         default: "created",
+    },
+    orderStatus: {
+        type: String,
+        default: "In Transit",
+        enum: ["In Transit", "Delivered", "Cancelled"]
+    },
+    expectedDate: {
+        type: String,
+        default: "Updated soon"
     }
 },{timestamps:true})
 
