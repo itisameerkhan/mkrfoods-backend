@@ -10,4 +10,4 @@ router.route("/verify").post(verifyPayment);
 router.route("/webhook").post(webhookVerification); 
 router.route("/my-orders").get(authMiddleware, getPaymentsByUser); 
 
-export default router;
+export default router; 
