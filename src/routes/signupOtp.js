@@ -1,17 +1,11 @@
 import express from "express";
 import nodemailer from "nodemailer";
 import fs from "fs";
-import bcrypt from "bcryptjs";
-import userModel from "../models/userModel.js";
+import otpModel from "../models/otpModel.js";
 
 let admin = null;
 
 const router = express.Router();
-
-// In-memory OTP and pending-user storage with expiration
-const otpStore = new Map();
-const pendingUsers = new Map();
-const OTP_EXPIRY_TIME = 10 * 60 * 1000; // 10 minutes
 
 // Email configuration (from environment only)
 const EMAIL_USER = process.env.EMAIL_USER;
@@ -78,7 +72,7 @@ const generateOtp = () => {
 /**
  * Send OTP via Email - POST /api/send-otp
  * Body: { name, email, password }
- * Stores pending user in memory until OTP verification
+ * Stores pending user in MongoDB (upsert)
  */
 router.post("/send-otp", async (req, res) => {
     try {
@@ -114,18 +108,25 @@ router.post("/send-otp", async (req, res) => {
                         return res.status(500).json({ success: false, message: "Error checking user status", error: error.message });
                     }
                 }
-            } else {
-                console.warn("⚠️ Firebase Admin not initialized. Skipping duplicate user check.");
             }
         } catch (error) {
             console.error("Error initializing admin for user check:", error);
         }
 
-        // Generate OTP and store pending user (use normalized email as key)
+        // Generate OTP
         const otp = generateOtp();
-        const expiryTime = Date.now() + OTP_EXPIRY_TIME;
-        otpStore.set(normalizedEmail, { otp, expiryTime });
-        pendingUsers.set(normalizedEmail, { name, password, expiryTime });
+
+        // Upsert into MongoDB
+        await otpModel.findOneAndUpdate(
+            { email: normalizedEmail },
+            { 
+                otp, 
+                name, 
+                password,
+                createdAt: new Date() // Renew expiry
+            },
+            { upsert: true, new: true, setDefaultsOnInsert: true }
+        );
 
         // Send OTP email
         const mailOptions = {
@@ -152,9 +153,7 @@ router.post("/send-otp", async (req, res) => {
         };
 
         await transporter.sendMail(mailOptions);
-
-        console.log(`Pending users keys: ${Array.from(pendingUsers.keys()).join(', ')}`);
-        console.log(`OTP store keys: ${Array.from(otpStore.keys()).join(', ')}`);
+        console.log(`OTP Sent and stored in DB for: ${normalizedEmail}`);
 
         res.status(200).json({ success: true, message: "OTP sent successfully to your email" });
     } catch (error) {
@@ -178,33 +177,23 @@ router.post("/verify-otp", async (req, res) => {
             return res.status(400).json({ success: false, message: "Email and OTP are required" });
         }
 
-        console.log(`✓ Verify attempt for: ${normalizedEmail}`);
-        console.log(`  Pending users keys: ${Array.from(pendingUsers.keys()).join(', ')}`);
-        console.log(`  OTP store keys: ${Array.from(otpStore.keys()).join(', ')}`);
+        const record = await otpModel.findOne({ email: normalizedEmail });
 
-        const stored = otpStore.get(normalizedEmail);
-        const pending = pendingUsers.get(normalizedEmail);
-
-        if (!stored || !pending) {
-            return res.status(400).json({ success: false, message: "OTP not found or no pending signup. Please request a new OTP." });
+        if (!record) {
+            return res.status(400).json({ success: false, message: "OTP not found or expired. Please request a new OTP." });
         }
 
-        if (Date.now() > stored.expiryTime || Date.now() > pending.expiryTime) {
-            otpStore.delete(normalizedEmail);
-            pendingUsers.delete(normalizedEmail);
-            return res.status(400).json({ success: false, message: "OTP has expired. Please request a new OTP." });
-        }
-
-        if (stored.otp !== otp) {
+        if (record.otp !== otp) {
             return res.status(400).json({ success: false, message: "Invalid OTP. Please try again." });
         }
 
-        // OTP is valid! Return user data so frontend can create Firebase account
-        const { name, password } = pending;
-        otpStore.delete(normalizedEmail);
-        pendingUsers.delete(normalizedEmail);
+        // OTP is valid! Return user data
+        const { name, password } = record;
+        
+        // Optional: Delete record immediately to prevent reuse (though it expires on its own)
+        await otpModel.deleteOne({ email: normalizedEmail });
 
-        console.log(`✅ OTP verified for: ${normalizedEmail}`);
+        console.log(`✅ OTP verified from DB for: ${normalizedEmail}`);
 
         res.status(200).json({
             success: true,
@@ -231,18 +220,22 @@ router.post("/resend-otp", async (req, res) => {
 
         const normalizedEmail = (email || '').toLowerCase().trim();
 
-        if (!normalizedEmail || !normalizedEmail.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+        if (!normalizedEmail) {
             return res.status(400).json({ success: false, message: "Valid email is required" });
         }
 
-        // Ensure there is a pending signup for this email
-        if (!pendingUsers.has(normalizedEmail)) {
-            return res.status(400).json({ success: false, message: "No pending signup for this email. Please submit signup form first." });
+        // Check if a record exists
+        const record = await otpModel.findOne({ email: normalizedEmail });
+        if (!record) {
+             return res.status(400).json({ success: false, message: "No pending signup found. Please sign up again." });
         }
 
         const otp = generateOtp();
-        const expiryTime = Date.now() + OTP_EXPIRY_TIME;
-        otpStore.set(normalizedEmail, { otp, expiryTime });
+        
+        // Update OTP and refresh expiry
+        record.otp = otp;
+        record.createdAt = new Date();
+        await record.save();
 
         const mailOptions = {
             from: EMAIL_USER,
