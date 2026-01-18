@@ -158,6 +158,16 @@ router.post("/send-otp", async (req, res) => {
         res.status(200).json({ success: true, message: "OTP sent successfully to your email" });
     } catch (error) {
         console.error("Error sending OTP:", error);
+        
+        // Check for missing credentials specifically
+        if (!EMAIL_USER || !EMAIL_PASS) {
+             return res.status(500).json({ 
+                 success: false, 
+                 message: "Server Configuration Error: Missing Email Credentials (EMAIL_USER/EMAIL_PASS)",
+                 error: "Environment variables not set on server"
+             });
+        }
+        
         res.status(500).json({ success: false, message: "Failed to send OTP", error: error.message });
     }
 });
