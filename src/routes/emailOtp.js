@@ -315,4 +315,55 @@ router.post("/resend", async (req, res) => {
     }
 });
 
+/**
+ * Test Connection & Configuration (Diagnostic Endpoint)
+ * GET /api/email-otp/test-connection
+ */
+router.get("/test-connection", async (req, res) => {
+    try {
+        const diagnostics = {
+            timestamp: new Date().toISOString(),
+            env: {
+                hasEmailUser: !!process.env.EMAIL_USER,
+                hasEmailPass: !!process.env.EMAIL_PASS,
+                hasDbUrl: !!process.env.DB_URL || !!process.env.MONGODB_URI
+            },
+            mongo: {
+                status: "Unknown",
+                readyState: mongoose.connection.readyState // 0=disconnected, 1=connected, 2=connecting, 3=disconnecting
+            },
+            smtp: {
+                status: "Untested"
+            }
+        };
+
+        // Check Mongo
+        const states = ["Disconnected", "Connected", "Connecting", "Disconnecting"];
+        diagnostics.mongo.status = states[mongoose.connection.readyState] || "Unknown";
+
+        // Check SMTP
+        try {
+            await transporter.verify();
+            diagnostics.smtp.status = "OK";
+        } catch (smtpError) {
+            diagnostics.smtp.status = "Failed";
+            diagnostics.smtp.error = smtpError.message;
+        }
+
+        const isHealthy = diagnostics.mongo.readyState === 1 && diagnostics.smtp.status === "OK";
+        
+        res.status(isHealthy ? 200 : 500).json({
+            success: isHealthy,
+            message: isHealthy ? "Backend configuration is healthy" : "Configuration issues detected",
+            diagnostics
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Diagnostic check failed",
+            error: error.message
+        });
+    }
+});
+
 export default router;
